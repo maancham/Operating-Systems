@@ -22,7 +22,8 @@
 #include <algorithm>
 
 
-
+#define BOOKS_FILE "./datasets/books.csv"
+#define REVS_FILE "./datasets/reviews.csv"
 
 
 using namespace std;
