@@ -56,7 +56,7 @@ vector<string> extract_winner(vector<vector<string> > books_data, int row_number
 void find_top(vector<vector<string> > books_data, vector<vector<string> > revs_data, string genre)
 {
     int row_number;
-    map<string, int> id_to_index;
+    unordered_map<string, int> id_to_index;
     vector<vector<string> > candidates;
     vector<double> points;
     vector<double> num_of_likes;
