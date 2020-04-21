@@ -20,6 +20,9 @@
 #include <fcntl.h>
 #include <map>
 #include <algorithm>
+#include "iostream"
+#include "vector"
+#include "algorithm"
 
 
 #define BOOKS_FILE "./datasets/books.csv"
