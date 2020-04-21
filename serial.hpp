@@ -24,6 +24,8 @@
 
 #define BOOKS_FILE "./datasets/books.csv"
 #define REVS_FILE "./datasets/reviews.csv"
+#define TEN 10.00
+#define ZERO 0.00
 
 
 using namespace std;

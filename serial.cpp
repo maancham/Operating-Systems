@@ -31,10 +31,31 @@ vector<vector<string> > parse_csv(string file_path)
     return line_elements;
 }
 
-//void print_output()
-
-string find_top(vector<vector<string> > books_data, vector<vector<string> > revs_data, string genre)
+void print_output(vector<string> winner, double final_points)
 {
+    cout << "id: " << winner[0] << endl;
+    cout << "Title: " << winner[1] << endl;
+    cout << "Genres: " << winner[2] << ", " << winner[3] << endl;
+    cout << "Number of Pages: " << winner[4] << endl;
+    cout << "Author: " << winner[5] << endl;
+    cout << "Average Rating: ";
+    cout << fixed;
+    cout << setprecision(2);
+    cout << final_points << endl;
+}
+
+vector<string> extract_winner(vector<vector<string> > books_data, int row_number)
+{
+    vector<string> winner;
+    for(int i=0; i<books_data[row_number].size(); i++)
+        winner.push_back(books_data[row_number][i]);
+    
+    return winner;
+}
+
+void find_top(vector<vector<string> > books_data, vector<vector<string> > revs_data, string genre)
+{
+    int row_number;
     map<string, int> id_to_index;
     vector<vector<string> > candidates;
     vector<double> points;
@@ -81,14 +102,13 @@ string find_top(vector<vector<string> > books_data, vector<vector<string> > revs
     }
 
     int max_index = distance(points.begin(), max_element (points.begin(),points.end()));
+    stringstream geek(candidates[max_index][3]);
+    geek >> row_number;
 
-    cout << fixed;
-    cout << setprecision(2);
-    cout << points[max_index] << endl;
+    vector<string> winner = extract_winner(books_data, row_number);
 
-    return candidates[max_index][1];
+    print_output(winner, points[max_index]);
 
-    //return "kir"; 
 }
 
 
@@ -101,7 +121,7 @@ int main(int argc, char **argv)
     vector<vector<string> > revs_data = parse_csv(REVS_FILE);
 
 
-    cout << find_top(books_data, revs_data, genre) << endl;
+    find_top(books_data, revs_data, genre);
     
 
 }
