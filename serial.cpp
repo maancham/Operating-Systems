@@ -31,13 +31,14 @@ vector<vector<string> > parse_csv(string file_path)
     return line_elements;
 }
 
+//void print_output()
+
 string find_top(vector<vector<string> > books_data, vector<vector<string> > revs_data, string genre)
 {
     map<string, int> id_to_index;
     vector<vector<string> > candidates;
-    vector<int> points;
-    vector<int> num_of_likes;
-    string top_id = "";
+    vector<double> points;
+    vector<double> num_of_likes;
     for(int i=0; i<books_data.size(); i++)
     {
         if ((books_data[i][2] == genre) || (books_data[i][3] == genre))
@@ -46,6 +47,7 @@ string find_top(vector<vector<string> > books_data, vector<vector<string> > revs
             temp.push_back(books_data[i][0]);
             temp.push_back(books_data[i][1]);
             temp.push_back(books_data[i][6]);
+            temp.push_back(to_string(i));
             candidates.push_back(temp);
             points.push_back(0);
             num_of_likes.push_back(0);
@@ -57,7 +59,7 @@ string find_top(vector<vector<string> > books_data, vector<vector<string> > revs
     {
         if(id_to_index.find(revs_data[i][0]) != id_to_index.end())
         {
-            int x,y;
+            double x,y;
             int index = id_to_index.find(revs_data[i][0])->second;
             stringstream geek(revs_data[i][1]); 
             stringstream seek(revs_data[i][2]);
@@ -71,30 +73,22 @@ string find_top(vector<vector<string> > books_data, vector<vector<string> > revs
     for(int i=0; i<points.size(); i++)
     {
         stringstream geek(candidates[i][2]);
-        int x = 0;
+        double x;
         geek >> x;
         points[i] /= num_of_likes[i];
         points[i] +=  x;
+        points[i] /= TEN;
     }
 
     int max_index = distance(points.begin(), max_element (points.begin(),points.end()));
 
-    for(int i=0; i<candidates.size(); i++)
-    {
-        for(int j=i+1; j<candidates.size(); j++)
-        {
-            if (points[j] > points[i])
-            {
-                string temp = candidates[i][1];
-                candidates[i][1] = candidates[j][1];
-                candidates[j][1] = temp;
-            }
-        }
-    }
-    cout << candidates[0][1] << "-" << candidates[1][1] << candidates[2][1] << endl;
-    //return candidates[max_index][1];
+    cout << fixed;
+    cout << setprecision(2);
+    cout << points[max_index] << endl;
 
-    return "kir"; 
+    return candidates[max_index][1];
+
+    //return "kir"; 
 }
 
 
@@ -108,10 +102,6 @@ int main(int argc, char **argv)
 
 
     cout << find_top(books_data, revs_data, genre) << endl;
-    
-
-
-    
     
 
 }
