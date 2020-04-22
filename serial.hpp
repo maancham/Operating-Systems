@@ -18,6 +18,7 @@
 #include <iosfwd>
 #include <string.h>
 #include <fcntl.h>
+#include <pthread.h>
 #include <map>
 #include <algorithm>
 
@@ -26,6 +27,7 @@
 #define REVS_FILE "./datasets/reviews.csv"
 #define TEN 10.00
 #define ZERO 0.00
+#define NUMBER_OF_THREADS 4
 
 
 using namespace std;
