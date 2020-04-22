@@ -27,7 +27,7 @@
 #define REVS_FILE "./datasets/reviews.csv"
 #define TEN 10.00
 #define ZERO 0.00
-#define NUMBER_OF_THREADS 4
+#define NUMBER_OF_THREADS 2
 
 char *revs;
 pthread_mutex_t mutex_sum;

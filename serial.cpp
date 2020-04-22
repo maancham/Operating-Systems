@@ -1,5 +1,26 @@
 #include "serial.hpp"
 
+char return_int(int id)
+{
+    switch(id) 
+    {
+        case 1:
+            return '1';
+            break;
+        case 2:
+            return '2';
+            break;
+        case 3:
+            return '3';
+            break;
+        case 4:
+            return '4';
+            break;
+        default:
+            return '0';
+    }
+}
+
 void split_string(const string &s, char delim, vector<string> &elems)
 {
     stringstream ss(s);
@@ -30,6 +51,20 @@ void split_string(const string &s, char delim, vector<string> &elems)
 //     }
 //     return line_elements;
 // }
+
+vector<vector<string> > parse_csv(string input)
+{
+    vector<vector<string> > line_elements;
+    vector<string> lines;
+    split_string(input, '\n', lines);
+    for (auto it : lines)
+    {
+        vector<string> elements_inLine;
+        split_string(it, ',', elements_inLine);
+        line_elements.push_back(elements_inLine);
+    }
+    return line_elements;
+}
 
 
 
@@ -131,65 +166,86 @@ ifstream::pos_type filesize(const char* filename)
 
 void* busy_work_books(void* tid)
 {
-    ifstream file(REVS_FILE);
-    int portion = filesize(REVS_FILE) / 4;
-	int thread_id = (intptr_t) tid;
-    int begin;
-    if (thread_id == 0)
+    int thread_id = (intptr_t) tid;
+    int portion, begin;
+    ifstream file;
+    if (thread_id % 2 == 0)
+    {
+        file.open(BOOKS_FILE);
+        portion = filesize(BOOKS_FILE) / NUMBER_OF_THREADS;
+    }
+    else
+    {
+        file.open(REVS_FILE);
+        portion = filesize(REVS_FILE) / NUMBER_OF_THREADS;
+    }
+    
+    if (thread_id == 0 || thread_id == 1)
         begin = 0;
     else
-        begin = thread_id * portion + 1;
+        begin = portion + 1;
     
     //cout << begin << endl;
+
     file.seekg(begin);
     char* readed = new char[portion];
     file.read(readed, portion);
     file.close();
 
-    //pthread_mutex_lock (&mutex_sum);
-    for (int i=begin; i < begin + portion; i++)
-        revs[i] = readed[i-begin];
-    //pthread_mutex_unlock (&mutex_sum); 
+    //readed[strlen(readed)] = return_int(thread_id);
 
-	pthread_exit((void*)thread_id);
+    //string str(readed);
+
+    // pthread_mutex_lock (&mutex_sum);
+    // for (int i=begin; i < begin + portion; i++)
+    // {
+    //     revs[i] = 'c';
+    // }
+    // pthread_mutex_unlock (&mutex_sum); 
+
+	pthread_exit((void*)readed);
 }
 
 int main(int argc, char **argv)
 {
     string genre = argv[1];
     
-    pthread_t threads[NUMBER_OF_THREADS];
+    pthread_t threads[2 * NUMBER_OF_THREADS];
 
-    revs = new char[filesize(REVS_FILE)];
-    cout << filesize(REVS_FILE) << endl;
+    char *revs = new char[filesize(REVS_FILE)];
+    char *books = new char[filesize(BOOKS_FILE)];
+
+    string revs_data;
+    string books_data;
+    //cout << filesize(BOOKS_FILE) << endl;
 
     int return_code;
 	void* status;
 
-    pthread_mutex_init(&mutex_sum, NULL);
-    for(int tid = 0; tid < NUMBER_OF_THREADS; tid++)
+    //pthread_mutex_init(&mutex_sum, NULL);
+    for(int tid = 0; tid < 2 * NUMBER_OF_THREADS; tid++)
 	{
 		return_code = pthread_create(&threads[tid], NULL,
 				busy_work_books, (void*)tid); 
-
-		if (return_code)
-		{
-			printf("ERROR; return code from pthread_create() is %d\n",
-					return_code);
-			exit(-1);
-		}
 	}
-    for(int tid = 0; tid < NUMBER_OF_THREADS; tid++)
+
+    for(int tid = 0; tid < 2 * NUMBER_OF_THREADS; tid++)
 	{
 		return_code = pthread_join(threads[tid], &status);
+        string str((char*) status);
+        if (tid % 2 == 0)
+            books_data.append(str);
+        else
+            revs_data.append(str);
+        
 	}
 
 	//pthread_exit(NULL);
 
-    cout << strlen(revs) << endl;
+    //cout << revs_data.size() << " - " << books_data.size() << endl;
 
-    // vector<vector<string> > books_data = parse_csv(BOOKS_FILE);
-    // vector<vector<string> > revs_data = parse_csv(REVS_FILE);
+    vector<vector<string> > all_books = parse_csv(books_data);
+    vector<vector<string> > all_revs = parse_csv(revs_data);
 
-    //find_top(books_data, revs_data, genre);
+    find_top(all_books, all_revs, genre);
 }
