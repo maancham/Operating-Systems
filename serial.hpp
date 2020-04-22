@@ -29,5 +29,8 @@
 #define ZERO 0.00
 #define NUMBER_OF_THREADS 4
 
+char *revs;
+pthread_mutex_t mutex_sum;
+
 
 using namespace std;

@@ -131,8 +131,8 @@ ifstream::pos_type filesize(const char* filename)
 
 void* busy_work_books(void* tid)
 {
-    ifstream file(BOOKS_FILE);
-    int portion = filesize(BOOKS_FILE) / 4;
+    ifstream file(REVS_FILE);
+    int portion = filesize(REVS_FILE) / 4;
 	int thread_id = (intptr_t) tid;
     int begin;
     if (thread_id == 0)
@@ -140,12 +140,17 @@ void* busy_work_books(void* tid)
     else
         begin = thread_id * portion + 1;
     
+    //cout << begin << endl;
     file.seekg(begin);
     char* readed = new char[portion];
     file.read(readed, portion);
     file.close();
 
-	cout << readed[0] << endl;
+    //pthread_mutex_lock (&mutex_sum);
+    for (int i=begin; i < begin + portion; i++)
+        revs[i] = readed[i-begin];
+    //pthread_mutex_unlock (&mutex_sum); 
+
 	pthread_exit((void*)thread_id);
 }
 
@@ -155,10 +160,13 @@ int main(int argc, char **argv)
     
     pthread_t threads[NUMBER_OF_THREADS];
 
-    
+    revs = new char[filesize(REVS_FILE)];
+    cout << filesize(REVS_FILE) << endl;
+
     int return_code;
 	void* status;
 
+    pthread_mutex_init(&mutex_sum, NULL);
     for(int tid = 0; tid < NUMBER_OF_THREADS; tid++)
 	{
 		return_code = pthread_create(&threads[tid], NULL,
@@ -176,7 +184,9 @@ int main(int argc, char **argv)
 		return_code = pthread_join(threads[tid], &status);
 	}
 
-	pthread_exit(NULL);
+	//pthread_exit(NULL);
+
+    cout << strlen(revs) << endl;
 
     // vector<vector<string> > books_data = parse_csv(BOOKS_FILE);
     // vector<vector<string> > revs_data = parse_csv(REVS_FILE);
