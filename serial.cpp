@@ -29,43 +29,6 @@ void split_string(const string &s, char delim, vector<string> &elems)
         elems.push_back(item);
 }
 
-// vector<vector<string> > parse_csv(string file_path)
-// {
-//     string str;
-//     vector<vector<string> > line_elements;
-//     ifstream file(file_path);
-//     file.seekg(0, ios::end);
-//     str.reserve(file.tellg());
-//     file.seekg(0, ios::beg);
-//     str.assign((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
-//     if (str.length() > 0)
-//     {
-//         vector<string> lines;
-//         split_string(str, '\n', lines);
-//         for (auto it : lines)
-//         {
-//             vector<string> elements_inLine;
-//             split_string(it, ',', elements_inLine);
-//             line_elements.push_back(elements_inLine);
-//         }
-//     }
-//     return line_elements;
-// }
-
-vector<vector<string> > parse_csv(string input)
-{
-    vector<vector<string> > line_elements;
-    vector<string> lines;
-    split_string(input, '\n', lines);
-    for (auto it : lines)
-    {
-        vector<string> elements_inLine;
-        split_string(it, ',', elements_inLine);
-        line_elements.push_back(elements_inLine);
-    }
-    return line_elements;
-}
-
 
 void print_output(vector<string> winner, double final_points)
 {
@@ -104,16 +67,16 @@ int find_max_index(vector<double> &points)
     return distance(points.begin(), max_element (points.begin(),points.end()));
 }
 
-vector<string> extract_winner(vector<vector<string> > books_data, int row_number)
+vector<string> extract_winner(vector<vector<string> > books_vector, int row_number)
 {
     vector<string> winner;
-    for(int i=0; i<books_data[row_number].size(); i++)
-        winner.push_back(books_data[row_number][i]);
+    for(int i=0; i<books_vector[row_number].size(); i++)
+        winner.push_back(books_vector[row_number][i]);
     
     return winner;
 }
 
-void find_top(vector<vector<string> > books_data, vector<vector<string> > revs_data, string genre)
+void find_top(vector<vector<string> > books_vector, vector<vector<string> > revs_data, string genre)
 {
     int row_number;
     unordered_map<string, int> id_to_index;
@@ -121,14 +84,14 @@ void find_top(vector<vector<string> > books_data, vector<vector<string> > revs_d
     vector<double> points;
     vector<double> num_of_likes;
 
-    for(int i=0; i<books_data.size(); i++)
+    for(int i=0; i<books_vector.size(); i++)
     {
-        if ((books_data[i][2] == genre) || (books_data[i][3] == genre))
+        if ((books_vector[i][2] == genre) || (books_vector[i][3] == genre))
         {
             vector <string> temp;
-            temp.push_back(books_data[i][0]);
-            temp.push_back(books_data[i][1]);
-            temp.push_back(books_data[i][6]);
+            temp.push_back(books_vector[i][0]);
+            temp.push_back(books_vector[i][1]);
+            temp.push_back(books_vector[i][6]);
             temp.push_back(to_string(i));
             candidates.push_back(temp);
             points.push_back(0);
@@ -152,7 +115,7 @@ void find_top(vector<vector<string> > books_data, vector<vector<string> > revs_d
     int max_index = find_max_index(points);
     stringstream geek(candidates[max_index][3]);
     geek >> row_number;
-    vector<string> winner = extract_winner(books_data, row_number);
+    vector<string> winner = extract_winner(books_vector, row_number);
     print_output(winner, points[max_index]);
 
 }
@@ -161,6 +124,27 @@ ifstream::pos_type filesize(const char* filename)
 {
     ifstream in(filename, ifstream::ate | ifstream::binary);
     return in.tellg(); 
+}
+
+void* parse_parallel(void* tid)
+{
+    int thread_id = (intptr_t) tid;
+    vector<string> lines;
+    if (thread_id % 2 == 0)
+        split_string(books_data, '\n', lines);
+    else
+        split_string(revs_data, '\n', lines);  
+    
+    for (auto it : lines)
+    {
+        vector<string> elements_inLine;
+        split_string(it, ',', elements_inLine);
+        if (thread_id % 2 == 0)
+            all_books.push_back(elements_inLine);
+        else
+            all_revs.push_back(elements_inLine);
+    }
+    pthread_exit((void*)thread_id);
 }
 
 void* read_parallel(void* tid)
@@ -183,45 +167,26 @@ void* read_parallel(void* tid)
         begin = 0;
     else
         begin = portion + 1;
-    
-    //cout << begin << endl;
 
     file.seekg(begin);
     char* readed = new char[portion];
     file.read(readed, portion);
     file.close();
 
-    //readed[strlen(readed)] = return_int(thread_id);
-
-    //string str(readed);
-
-    // pthread_mutex_lock (&mutex_sum);
-    // for (int i=begin; i < begin + portion; i++)
-    // {
-    //     revs[i] = 'c';
-    // }
-    // pthread_mutex_unlock (&mutex_sum); 
-
 	pthread_exit((void*)readed);
 }
+
 
 int main(int argc, char **argv)
 {
     string genre = argv[1];
     
     pthread_t threads[2 * NUMBER_OF_THREADS];
-
-    char *revs = new char[filesize(REVS_FILE)];
-    char *books = new char[filesize(BOOKS_FILE)];
-
-    string revs_data;
-    string books_data;
-    //cout << filesize(BOOKS_FILE) << endl;
+    pthread_t parse_threads[2];
 
     int return_code;
 	void* status;
 
-    //pthread_mutex_init(&mutex_sum, NULL);
     for(int tid = 0; tid < 2 * NUMBER_OF_THREADS; tid++)
 	{
 		return_code = pthread_create(&threads[tid], NULL,
@@ -238,12 +203,16 @@ int main(int argc, char **argv)
             revs_data.append(str);   
 	}
 
-	//pthread_exit(NULL);
+    for(int tid = 0; tid < TWO; tid++)
+	{
+		return_code = pthread_create(&parse_threads[tid], NULL,
+				parse_parallel, (void*)tid); 
+	}
 
-    //cout << revs_data.size() << " - " << books_data.size() << endl;
-
-    vector<vector<string> > all_books = parse_csv(books_data);
-    vector<vector<string> > all_revs = parse_csv(revs_data);
+    for(int tid = 0; tid < TWO; tid++)
+	{
+        return_code = pthread_join(parse_threads[tid], &status); 
+	}
 
     find_top(all_books, all_revs, genre);
 }
