@@ -67,7 +67,6 @@ vector<vector<string> > parse_csv(string input)
 }
 
 
-
 void print_output(vector<string> winner, double final_points)
 {
     cout << "id: " << winner[0] << endl;
@@ -81,7 +80,7 @@ void print_output(vector<string> winner, double final_points)
     cout << final_points << endl;
 }
 
-void get_revs_data(vector<vector<string> > revs_data, vector<double> &points, 
+void get_revs_data(vector<vector<string> > &revs_data, vector<double> &points, 
                        vector<double> &num_of_likes, unordered_map<string, int> id_to_index)
 {
     for(int i=0; i<revs_data.size(); i++)
@@ -164,7 +163,7 @@ ifstream::pos_type filesize(const char* filename)
     return in.tellg(); 
 }
 
-void* busy_work_books(void* tid)
+void* read_parallel(void* tid)
 {
     int thread_id = (intptr_t) tid;
     int portion, begin;
@@ -226,7 +225,7 @@ int main(int argc, char **argv)
     for(int tid = 0; tid < 2 * NUMBER_OF_THREADS; tid++)
 	{
 		return_code = pthread_create(&threads[tid], NULL,
-				busy_work_books, (void*)tid); 
+				read_parallel, (void*)tid); 
 	}
 
     for(int tid = 0; tid < 2 * NUMBER_OF_THREADS; tid++)
@@ -236,8 +235,7 @@ int main(int argc, char **argv)
         if (tid % 2 == 0)
             books_data.append(str);
         else
-            revs_data.append(str);
-        
+            revs_data.append(str);   
 	}
 
 	//pthread_exit(NULL);
