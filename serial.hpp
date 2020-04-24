@@ -34,8 +34,12 @@ using namespace std;
 
 pthread_mutex_t mutex_sum;
 
-string books_data, revs_data;
+string books_data, revs_data, genre;
 vector<vector<string> > all_books;
 vector<vector<string> > all_revs;
+vector<vector<string> > candidates;
+vector<double> points;
+vector<double> num_of_likes;
+unordered_map<string, int> id_to_index;
 
 
