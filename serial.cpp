@@ -107,7 +107,10 @@ void find_top(vector<vector<string> > &books_vector, vector<vector<string> > &re
         stringstream geek(candidates[i][2]);
         double x;
         geek >> x;
-        points[i] /= num_of_likes[i];
+        if (num_of_likes[i] != 0)
+            points[i] /= num_of_likes[i];
+        else
+            points[i] = 0;
         points[i] +=  x;
         points[i] /= TEN;
     }
