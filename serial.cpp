@@ -44,7 +44,7 @@ void print_output(vector<string> &winner, double final_points)
 }
 
 void get_revs_data(vector<vector<string> > &revs_data, vector<double> &points, 
-                       vector<double> &num_of_likes, unordered_map<string, int> id_to_index)
+                       vector<double> &num_of_likes, unordered_map<string, int> &id_to_index)
 {
     for(int i=0; i<revs_data.size(); i++)
     {
