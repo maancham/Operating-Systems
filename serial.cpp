@@ -44,7 +44,7 @@ void print_output(vector<string> winner, double final_points)
     cout << final_points << endl;
 }
 
-void get_revs_data(vector<vector<string> > revs_data, vector<double> &points, 
+void get_revs_data(vector<vector<string> > &revs_data, vector<double> &points, 
                        vector<double> &num_of_likes, unordered_map<string, int> id_to_index)
 {
     for(int i=0; i<revs_data.size(); i++)
@@ -68,7 +68,7 @@ int find_max_index(vector<double> &points)
     return distance(points.begin(), max_element (points.begin(),points.end()));
 }
 
-vector<string> extract_winner(vector<vector<string> > books_data, int row_number)
+vector<string> extract_winner(vector<vector<string> > &books_data, int row_number)
 {
     vector<string> winner;
     for(int i=0; i<books_data[row_number].size(); i++)
@@ -77,7 +77,7 @@ vector<string> extract_winner(vector<vector<string> > books_data, int row_number
     return winner;
 }
 
-void find_top(vector<vector<string> > books_data, vector<vector<string> > revs_data, string genre)
+void find_top(vector<vector<string> > &books_data, vector<vector<string> > &revs_data, string genre)
 {
     int row_number;
     unordered_map<string, int> id_to_index;
@@ -108,7 +108,11 @@ void find_top(vector<vector<string> > books_data, vector<vector<string> > revs_d
         stringstream geek(candidates[i][2]);
         double x;
         geek >> x;
-        points[i] /= num_of_likes[i];
+        if (num_of_likes[i] != 0)
+            points[i] /= num_of_likes[i];
+        else
+            points[i] = 0;
+        
         points[i] +=  x;
         points[i] /= TEN;
     }
